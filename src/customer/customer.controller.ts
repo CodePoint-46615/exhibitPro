@@ -1,6 +1,12 @@
-import { Controller } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
+import { CustomerService } from "./customer.service";
 
-@Controller()
+@Controller('customer')
 export class CustomerController{
-    
+    constructor(private readonly customerService: CustomerService){}
+
+    @Get()
+    getExhibition():string{
+        return this.customerService.getExhibition();
+    }
 }
