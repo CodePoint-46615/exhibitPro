@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { HostDto } from './host.dto';
 
 @Injectable()
 export class HostService {
@@ -37,4 +38,10 @@ export class HostService {
   getCustomerData() {
     return 'Customer data (for host)';
   }
+
+  createUser(hostData:HostDto){
+    return hostData;
+  }
+
+
 }

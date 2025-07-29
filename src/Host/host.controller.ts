@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { HostService } from './host.service';
+import { HostDto } from './host.dto';
 
 @Controller('host')
 export class HostController {
@@ -49,4 +50,12 @@ export class HostController {
   getCustomerData() {
     return this.hostService.getCustomerData();
   }
+
+  @Post('register')
+  @UsePipes(new ValidationPipe())
+  createUser(@Body() hostData:HostDto){
+    return this.hostService.createUser(hostData);
+  }
+
+
 }
