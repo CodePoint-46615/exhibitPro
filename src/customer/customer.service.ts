@@ -1,14 +1,11 @@
 import { Injectable } from "@nestjs/common";
+import { CustomerDTO } from "./customer.dto";
 
 @Injectable()
 export class CustomerService{
 
     getExhibition():string{
         return "Upcoming Exhibition will start from 28 September.";
-    }
-
-    addExhibition(customerdata:object):object{
-        return {return: customerdata};
     }
 
     findExhibitionbyid(id:number, title:string):object{
@@ -21,5 +18,15 @@ export class CustomerService{
 
     deletebooking(id:number){
         return "Delete Booking for the exhibition id: "+id; 
+    }
+
+    /**
+     * **********************************
+     * UPDATED CONTENT FOR THE LAB TASK 2
+     * **********************************
+     */
+
+    addExhibition(customerdata:CustomerDTO):string{
+        return "Your Booking is Successful for the upcoming exhibition. Stay tuned for update.";
     }
 }
