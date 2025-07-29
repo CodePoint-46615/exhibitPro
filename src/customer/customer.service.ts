@@ -26,7 +26,7 @@ export class CustomerService{
      * **********************************
      */
 
-    addExhibition(customerdata:CustomerDTO):string{
-        return "Your Booking is Successful for the upcoming exhibition. Stay tuned for update.";
+    addExhibition(customerdata:CustomerDTO, file: Express.Multer.File){
+        return {customerdata, file};
     }
 }
