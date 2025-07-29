@@ -1,5 +1,8 @@
-import { Body, Controller,Delete,Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller,Delete,Get, Param, Post, Put, Query, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
+import { AdminDto } from './admin.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import multer, { diskStorage } from 'multer';
 
 @Controller('admin')
 export class AdminController {
@@ -57,6 +60,27 @@ export class AdminController {
     @Delete('deletevenue/:id')
     deleteVenueData(@Param('id') id: string) {
         return this.adminService.getVenueData() + " with ID " + id + " deleted";
+    }
+
+    @Post('addadmin')
+    @UsePipes(new ValidationPipe())
+    @UseInterceptors(FileInterceptor('file', {
+        fileFilter: (req, file, callback) => {
+            if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+                return callback(new Error('Only image files are allowed!'), false);
+            }
+            callback(null, true);
+        },
+        limits: { fileSize: 2 * 1024 * 1024 },
+        storage:diskStorage({
+            destination: './uploads',
+            filename: (req, file, callback) => {
+                callback(null, Date.now()+file.originalname);
+            }
+        })
+    }))
+    createAdmin(@UploadedFile() file:Express.Multer.File ,@Body() adminData: AdminDto) {
+        return this.adminService.createAdmin(adminData,file);
     }
 
 }
