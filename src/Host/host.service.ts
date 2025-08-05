@@ -1,8 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { HostDto } from './host.dto';
+import { CreateUserDto } from './createUser.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { HostEntity } from './host.entity';
+import{Repository}from 'typeorm';
+import { UpdateStatusDto } from './updateStatus.dto';
+import { MoreThan } from 'typeorm';
 
 @Injectable()
 export class HostService {
+   constructor(
+    @InjectRepository(HostEntity)
+    private readonly hostRepo: Repository<HostEntity>,
+  ) {}
+
   getHall() {
     return 'List of halls';
   }
@@ -43,5 +54,25 @@ export class HostService {
     return hostData;
   }
 
+
+  create(createUserDto: CreateUserDto){
+    const user=this.hostRepo.create(createUserDto);
+    return this.hostRepo.save(user);
+
+  }
+
+    async updateStatus(id: number, updateStatusDto: UpdateStatusDto) {
+    await this.hostRepo.update(id, { status: updateStatusDto.status });
+    return this.hostRepo.findOne({ where: { id } });
+  }
+
+
+   findInactive() {
+    return this.hostRepo.find({ where: { status: 'inactive' } });
+  }
+
+  findOlderThan40() {
+    return this.hostRepo.find({ where: { age: MoreThan(40) } });
+  }
 
 }

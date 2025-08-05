@@ -1,6 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put,Patch, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { HostService } from './host.service';
 import { HostDto } from './host.dto';
+import { CreateUserDto } from './createUser.dto';
+import { UpdateStatusDto } from './updateStatus.dto';
+
 
 @Controller('host')
 export class HostController {
@@ -57,5 +60,26 @@ export class HostController {
     return this.hostService.createUser(hostData);
   }
 
+
+  @Post()
+  create(@Body() createUserDto:CreateUserDto){
+    return this.hostService.create(createUserDto);
+  }
+
+  
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+    return this.hostService.updateStatus(+id, dto);
+  }
+
+  @Get('inactive')
+  findInactive() {
+    return this.hostService.findInactive();
+  }
+
+  @Get('older-than-40')
+  findOlderThan40() {
+    return this.hostService.findOlderThan40();
+  }
 
 }
