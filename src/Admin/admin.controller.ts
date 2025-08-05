@@ -1,8 +1,11 @@
-import { Body, Controller,Delete,Get, Param, Post, Put, Query, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller,Delete,Get, Param, Patch, Post, Put, Query, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminDto } from './admin.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import multer, { diskStorage } from 'multer';
+import { CreateAdminDto } from './createadmin.dto';
+import { get } from 'http';
+
 
 @Controller('admin')
 export class AdminController {
@@ -81,6 +84,27 @@ export class AdminController {
     }))
     createAdmin(@UploadedFile() file:Express.Multer.File ,@Body() adminData: AdminDto) {
         return this.adminService.createAdmin(adminData,file);
+    }
+
+    @Post('createadmin')
+    addAdmin(@Body() admin: CreateAdminDto) {
+        return this.adminService.createAdminUser(admin);
+    }
+    @Get('getalladmin')
+    getAllAdmin() {
+        return this.adminService.getAdminData();
+    }
+    @Patch('updateadmin/:id')
+    updateAdmin(@Param('id') id: string, @Body() phone: {phone: number}) {
+        return this.adminService.editAdmin(id, phone);
+    }
+    @Get('nullname')
+    getNullName() {
+        return this.adminService.nullName();
+    }
+    @Delete('deleteadmin/:id')
+    deleteAdmin(@Param('id') id: string) {
+        return this.adminService.deleteAdmin(id);
     }
 
 }
