@@ -54,7 +54,7 @@ export class Exhibition {
   @CreateDateColumn()
   createdAt: Date;
 
-  // ---------------- Relations ----------------
+
 
   @OneToMany(() => Booking, (booking) => booking.exhibition)
   bookings: Booking[];

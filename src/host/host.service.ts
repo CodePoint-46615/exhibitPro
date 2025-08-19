@@ -66,7 +66,6 @@ export class HostService {
     return await this.exhibitionRepository.save(exhibition);
   }
 
-  // Host-centric helpers
   async listMyExhibitions(hostId: string): Promise<Exhibition[]> {
     return await this.exhibitionRepository.find({ where: { host: { userID: hostId } }, relations: ['host'] });
   }

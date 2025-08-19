@@ -41,5 +41,5 @@ export class CreateExhibitionDto {
   capacity: number;
 
   @IsEnum(ExhibitionStatus)
-  status?: ExhibitionStatus; // Optional, default will be PENDING
+  status?: ExhibitionStatus;
 }
