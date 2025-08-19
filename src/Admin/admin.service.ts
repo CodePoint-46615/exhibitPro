@@ -2,9 +2,11 @@ import { Get, Injectable } from '@nestjs/common';
 import { AdminDto } from './admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AdminEntity } from './admin.entity';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Like, Repository } from 'typeorm';
 import { CreateAdminDto } from './createadmin.dto';
 import { isNull } from 'util';
+import e from 'express';
+import { IsNotEmpty } from 'class-validator';
 
 @Injectable()
 export class AdminService {
@@ -39,22 +41,22 @@ export class AdminService {
         return {adminData,file};
     }
 
-    createAdminUser(admin: CreateAdminDto) : Promise<AdminEntity> {
+    async createAdminUser(admin: CreateAdminDto) : Promise<AdminEntity> {
         const entity = this.userRepository.create(admin);
-        return this.userRepository.save(entity);
+        return await this.userRepository.save(entity);
     }
-    getAdminData(): Promise<AdminEntity[]> {
+    async getAdminData(): Promise<AdminEntity[]> {
         return this.userRepository.find();
     }
-    editAdmin(id: string, phonenum: { phone: number }) {
+    async editAdmin(id: string, phonenum: { phone: number }) {
         return this.userRepository.update(id, {phone: phonenum.phone});
     }
 
-    nullName(): Promise<AdminEntity[]> {
-    return this.userRepository.find({where: { fullname: IsNull() },});
+    async nullName(): Promise<AdminEntity[]> {
+    return this.userRepository.find({where: { fullname: Like('%%') },});
     }
 
-    deleteAdmin(id: string) {
+    async deleteAdmin(id: string) {
         return this.userRepository.delete(id);
     }
     
