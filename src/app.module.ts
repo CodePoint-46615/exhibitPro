@@ -3,7 +3,9 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AdminModule } from './Admin/admin.module';
+import { AdminModule } from './admin/admin.module';
+import { HostModule } from './host/host.module';
+import { CustomerModule } from './customer/customer.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -15,6 +17,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       serveRoot: '/uploads',
     }),
     AdminModule,
+    HostModule,
+    CustomerModule,
     UsersModule,
     TypeOrmModule.forRoot({
     type: 'postgres',
