@@ -1,74 +1,59 @@
-import { Injectable } from "@nestjs/common";
-import { CustomerDTO } from "./customer.dto";
-import { CustomerEntity } from "./customer.entity";
-import { ILike, Repository } from "typeorm";
-import { InjectRepository } from "@nestjs/typeorm";
-import { promises } from "dns";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Booking, PaymentStatus } from './booking.entity';
+import { Feedback } from './feedback.entity';
+import { Exhibition } from 'src/host/exhibition.entity';
+import { Users } from 'src/users/users.entity';
 
 @Injectable()
-export class CustomerService{
+export class CustomerService {
+  constructor(
+    @InjectRepository(Booking) private readonly bookingRepository: Repository<Booking>,
+    @InjectRepository(Feedback) private readonly feedbackRepository: Repository<Feedback>,
+    @InjectRepository(Exhibition) private readonly exhibitionRepository: Repository<Exhibition>,
+    @InjectRepository(Users) private readonly usersRepository: Repository<Users>,
+  ) {}
 
-    constructor(
-        @InjectRepository(CustomerEntity) private readonly customerRepo: Repository<CustomerEntity>,
-    ){}
+  async createBooking(body: { exhibition_id: string; customer_id: string; tickets_booked: number }): Promise<Booking> {
+    const exhibition = await this.exhibitionRepository.findOne({ where: { exhibition_id: body.exhibition_id } });
+    if (!exhibition) throw new NotFoundException('Exhibition not found');
+    const customer = await this.usersRepository.findOne({ where: { userID: body.customer_id } });
+    if (!customer) throw new NotFoundException('Customer not found');
 
-    /**
-     ********************************
-     * TASK FOR LAB TASK 1
-     * ******************************
-     */
+    const total_price = Number(exhibition.ticket_price) * body.tickets_booked;
+    const booking = this.bookingRepository.create({
+      exhibition,
+      customer,
+      tickets_booked: body.tickets_booked,
+      total_price,
+      payment_status: PaymentStatus.UNPAID,
+    });
+    return await this.bookingRepository.save(booking);
+  }
 
-    // getExhibition():string{
-    //     return "Upcoming Exhibition will start from 28 September.";
-    // }
+  async getBooking(id: string): Promise<Booking> {
+    const booking = await this.bookingRepository.findOne({ where: { booking_id: id }, relations: ['exhibition', 'customer'] });
+    if (!booking) throw new NotFoundException('Booking not found');
+    return booking;
+  }
 
-    // findExhibitionbyid(id:number, title:string):object{
-    //     return {id:id, title:title}; 
-    // }
+  async createFeedback(body: { exhibition_id: string; customer_id: string; rating: number; comment: string }): Promise<Feedback> {
+    const exhibition = await this.exhibitionRepository.findOne({ where: { exhibition_id: body.exhibition_id } });
+    if (!exhibition) throw new NotFoundException('Exhibition not found');
+    const customer = await this.usersRepository.findOne({ where: { userID: body.customer_id } });
+    if (!customer) throw new NotFoundException('Customer not found');
+    const feedback = this.feedbackRepository.create({ exhibition, customer, rating: body.rating, comment: body.comment });
+    return await this.feedbackRepository.save(feedback);
+  }
 
-    // updatebooking(id:number){
-    //     return "Booking updated for the exhibition id: "+id ; 
-    // }
+  async listExhibitions(): Promise<Exhibition[]> {
+    return await this.exhibitionRepository.find({ relations: ['host'] });
+  }
 
-    // deletebooking(id:number){
-    //     return "Delete Booking for the exhibition id: "+id; 
-    // }
-
-    /**
-     * **********************************
-     * UPDATED CONTENT FOR THE LAB TASK 2
-     * **********************************
-     */
-
-    // addExhibition(customerdata:CustomerDTO, file: Express.Multer.File){
-    //     return {customerdata, file};
-    // }
-
-    /**
-     * ********************************
-     * UPDATED CONTENT FOR LAB TASK 3
-     * ********************************
-     */
-
-    async createCustomer(data: CustomerDTO): Promise<CustomerEntity>{
-        return this.customerRepo.save(data);
-    }
-
-    async findCustomerByFullNameSubsstring(substring: string):Promise<CustomerEntity[]>{
-        return this.customerRepo.find({
-            where: {
-                fullName: ILike(`%${substring}%`)
-            }
-        });
-    }
-
-    async findByUserName(username: string):Promise<CustomerEntity | null>{
-        return this.customerRepo.findOne({
-            where: {username}
-        });
-    }
-
-    async deleteCustomer(username:string):Promise<void>{
-        await this.customerRepo.delete({username}); 
-    }
+  async getExhibitionPublic(id: string): Promise<Exhibition> {
+    const exhibition = await this.exhibitionRepository.findOne({ where: { exhibition_id: id }, relations: ['host'] });
+    if (!exhibition) throw new NotFoundException('Exhibition not found');
+    return exhibition;
+  }
 }

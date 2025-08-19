@@ -1,96 +1,44 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from "@nestjs/common";
-import { CustomerService } from "./customer.service";
-import { CustomerDTO } from "./customer.dto";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage, MulterError } from "multer";
-import { CustomerEntity } from "./customer.entity";
+import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { CustomerService } from './customer.service';
+import { Booking } from './booking.entity';
+import { Feedback } from './feedback.entity';
+import { CreateBookingDto } from './create-booking.dto';
+import { CreateFeedbackDto } from './create-feedback.dto';
+import { CustomerGuard } from './customer.guard';
 
 @Controller('customer')
-export class CustomerController{
-    constructor(private readonly customerService: CustomerService){}
+export class CustomerController {
+  constructor(private readonly customerService: CustomerService) {}
 
-    /**
-     * **********************************
-     * ROUTE FOR THE LAB TASK 1
-     * ********************************** 
-     */
-    // @Get('get-exhibition')
-    // getExhibition():string{
-    //     return this.customerService.getExhibition();
-    // }
+  @UseGuards(CustomerGuard)
+  @Post('bookings')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  createBooking(@Body() body: CreateBookingDto): Promise<Booking> {
+    return this.customerService.createBooking(body);
+  }
 
-    // @Get('find-exhibition')
-    // findExhibitionbyid(@Query('id') id:number, @Query('title') title:string):object{
-    //     return this.customerService.findExhibitionbyid(id, title); 
-    // }
+  @UseGuards(CustomerGuard)
+  @Get('bookings/:id')
+  getBooking(@Param('id') id: string): Promise<Booking> {
+    return this.customerService.getBooking(id);
+  }
 
-    // @Patch('update-booking/:id')
-    // updatebooking(@Param('id') id:number){
-    //     return this.customerService.updatebooking(id); 
-    // }
+  @UseGuards(CustomerGuard)
+  @Post('feedbacks')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  createFeedback(@Body() body: CreateFeedbackDto): Promise<Feedback> {
+    return this.customerService.createFeedback(body);
+  }
 
-    // @Delete('delete-booking/:id')
-    // deletebooking(@Param('id') id:number){
-    //     return this.customerService.deletebooking(id);
-    // }
+  @UseGuards(CustomerGuard)
+  @Get('exhibitions')
+  listExhibitions() {
+    return this.customerService.listExhibitions();
+  }
 
-    /**
-     * ********************************************
-     *  UPDATED ROUTE FOR THE LAB TASK 2
-     * ********************************************
-     */ 
-
-    // @Post('add-exhibition')
-    // @UsePipes(new ValidationPipe())
-    // @UseInterceptors(FileInterceptor('file', {
-         
-    //     fileFilter: (req, file, cb) => {
-    //     if(!file){
-    //         return cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'pdf'), false);
-    //     }
-    //     if(!file.mimetype.match(/\/(pdf)$/))
-    //        return cb(new Error("Only Pdf Are Allowed"), false);
-    //     else
-    //        return cb(null, true);
-    //     },
-    //     limits: {fileSize: 200*1024}, //2kb
-    //     storage: diskStorage({
-    //         destination: './upload',
-    //         filename: function(req, file, cb){
-    //             cb(null, Date.now()+file.originalname)
-    //         },
-    //     })
-    // }))
-    // addExhibition(@Body() customerdata:CustomerDTO, @UploadedFile() file: Express.Multer.File){
-    //     return this.customerService.addExhibition(customerdata, file);
-    // }
-
-
-    /**
-     * **********************************
-     * UPDATED ROUTE FOR THE LAB TASK 3
-     * ***********************************
-     */
-
-    @Post('create')
-    @UsePipes(new ValidationPipe())
-    async createCustomer(@Body() data:CustomerDTO):Promise<CustomerEntity>{
-        return this.customerService.createCustomer(data); 
-    }
-
-    @Get('search')
-    async search(@Query('substring') substring: string):Promise<CustomerEntity[]>{
-        return this.customerService.findCustomerByFullNameSubsstring(substring);
-    }
-
-    @Get(':username')
-    async getUserByName(@Param('username') username:string):Promise<CustomerEntity | null>{
-        return this.customerService.findByUserName(username); 
-    }
-
-    @Delete(':username')
-    async deleteCustomer(@Param('username') username:string):Promise<{message: string}>{
-        await this.customerService.deleteCustomer(username);
-        return {message: 'Customer Deleted'}; 
-    }
+  @UseGuards(CustomerGuard)
+  @Get('exhibitions/:id')
+  getExhibition(@Param('id') id: string) {
+    return this.customerService.getExhibitionPublic(id);
+  }
 }
