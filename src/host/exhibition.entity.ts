@@ -12,7 +12,7 @@ export enum ExhibitionStatus {
 @Entity('exhibitions')
 export class Exhibition {
   @PrimaryGeneratedColumn('uuid')
-  exhibitionID: string;
+  exhibition_id: string;
 
   @ManyToOne(() => Users, (user) => user.exhibitions)
   host: Users;
@@ -30,13 +30,13 @@ export class Exhibition {
   category: string;
 
   @Column({ type: 'timestamp' })
-  startDate: Date;
+  start_date: Date;
 
   @Column({ type: 'timestamp' })
-  endDate: Date;
+  end_date: Date;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  ticketPrice: number;
+  ticket_price: number;
 
   @Column()
   capacity: number;
@@ -52,13 +52,13 @@ export class Exhibition {
   status: ExhibitionStatus;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 
+  // ---------------- Relations ----------------
 
-
-  @OneToMany(() => Booking, (booking) => booking.exhibition)
+  @OneToMany(() => Booking, (booking) => booking.exhibition, { cascade: false })
   bookings: Booking[];
 
-  @OneToMany(() => Feedback, (feedback) => feedback.exhibition)
+  @OneToMany(() => Feedback, (feedback) => feedback.exhibition, { cascade: false })
   feedbacks: Feedback[];
 }

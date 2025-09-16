@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, UseGuards, Put } from '@nestjs/common';
 import { HostService } from './host.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage, MulterError } from 'multer';
+import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { CreateExhibitionDto } from './createExhibition.dto';
 import { UpdateExhibitionDto } from './updateExhibition.dto';
@@ -39,10 +39,11 @@ export class HostController {
   }
 
   @UseGuards(HostGuard)
-  @Put('exhibition/:id')
+  @Put('exhibitions/:id')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-  updateWholeExhibition(@Param('id') id: string, @Body() dto: CreateExhibitionDto) {
-    return this.hostService.updateWholeExhibition(id, dto);
+  replaceExhibition(@Param('id') id: string, @Body() dto: UpdateExhibitionDto) {
+    // Treat PUT as full replacement semantically similar to update for now
+    return this.hostService.updateExhibition(id, dto);
   }
 
   @UseGuards(HostGuard)
@@ -53,22 +54,23 @@ export class HostController {
 
   @UseGuards(HostGuard)
   @Post('exhibitions/:id/upload-image')
-  @UseInterceptors(FileInterceptor('file', { fileFilter: (req, file, cb) => {
-    if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/)) cb(null, true);
-    else {
-      cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
-    } },
-    limits: { fileSize: 30000 }, storage:diskStorage({
-      destination: './uploads/exhibitions',
-      filename: function (req, file, cb) {
-        cb(null,Date.now()+file.originalname) },
-      })
-    }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/exhibitions',
+        filename: (_req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
   uploadExhibitionImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
     return this.hostService.updateExhibitionImage(id, file?.filename);
   }
 
-
+  // Host extras
   @UseGuards(HostGuard)
   @Get(':hostId/exhibitions')
   listMyExhibitions(@Param('hostId') hostId: string) {

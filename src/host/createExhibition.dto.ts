@@ -5,7 +5,7 @@ import { ExhibitionStatus } from './exhibition.entity';
 export class CreateExhibitionDto {
   @IsUUID()
   @IsNotEmpty()
-  hostID: string;
+  host_id: string;
 
   @IsString()
   @IsNotEmpty()
@@ -26,20 +26,20 @@ export class CreateExhibitionDto {
 
   @IsDateString()
   @IsNotEmpty()
-  startDate: Date;
+  start_date: Date;
 
   @IsDateString()
   @IsNotEmpty()
-  endDate: Date;
+  end_date: Date;
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
-  ticketPrice: number;
+  ticket_price: number;
 
   @IsNumber()
   @Min(1)
   capacity: number;
 
   @IsEnum(ExhibitionStatus)
-  status?: ExhibitionStatus;
+  status?: ExhibitionStatus; // Optional, default will be PENDING
 }

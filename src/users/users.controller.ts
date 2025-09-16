@@ -1,22 +1,38 @@
-import {Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseInterceptors, UsePipes, ValidationPipe, NotFoundException, UseGuards, Req, Patch, HttpException} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UploadedFile,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
+  NotFoundException,
+  UseGuards,
+  Req,
+  Patch,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage, MulterError } from 'multer';
+import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './createUsers.dto';
 import { UpdateUserDto } from './updateUsers.dto';
+import { LoginDto } from './dto/login.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtService } from '@nestjs/jwt';
 
 import { access } from 'fs';
 import { UserGuard } from './user.guard';
-import { LoginDto } from './login.dto';
-import { ChangePasswordDto } from './change-password.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly userService: UsersService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   @Post()
@@ -28,19 +44,27 @@ export class UsersController {
   @UseGuards(UserGuard)
   @Get()
   findAll() {
-    return this.userService.findAll();
+    return this.userService.findAllWithoutPassword();
   }
 
   @UseGuards(UserGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
+    return this.userService.findOneWithoutPassword(id);
+  }
+
+  @UseGuards(UserGuard)
+  @Patch(':id')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  update(@Param('id') id: string, @Body() data: UpdateUserDto) {
+    return this.userService.update(id, data);
   }
 
   @UseGuards(UserGuard)
   @Put(':id')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-  update(@Param('id') id: string, @Body() data: UpdateUserDto) {
+  replace(@Param('id') id: string, @Body() data: UpdateUserDto) {
+    // Treat PUT as a full update semantically equivalent to update for this API
     return this.userService.update(id, data);
   }
 
@@ -51,35 +75,58 @@ export class UsersController {
   }
 
   @UseGuards(UserGuard)
+  @Get(':id/file')
+  getProfilePicture(@Param('id') id: string) {
+    return this.userService.getProfilePicture(id);
+  }
+
+  @UseGuards(UserGuard)
   @Post(':id/upload-image')
-  @UseInterceptors(FileInterceptor('file', { fileFilter: (req, file, cb) => {
-    if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/)) cb(null, true);
-    else {
-        cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
-    }},
-    limits: { fileSize: 30000 }, storage:diskStorage({
-      destination: './uploads',
-      filename: function (req, file, cb) {
-        cb(null,Date.now()+file.originalname) },
-      })
-    }))
-  uploadProfileImage(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads/users',
+        filename: (_req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  uploadProfileImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     return this.userService.updateProfileImage(id, file?.filename);
   }
 
   @Post('login')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async login(@Body() credentials: LoginDto) {
-    const user = await this.userService.validateUser(credentials.email, credentials.password);
+    const user = await this.userService.validateUser(
+      credentials.email,
+      credentials.password,
+    );
     if (!user) {
-      throw new HttpException('Invalid credentials', 401);
+      throw new NotFoundException('Invalid credentials');
     }
-    
+
     // Return user data without password
     const payload = { sub: user.userID, email: user.email, role: user.role };
     return {
-      access_token: await this.jwtService.signAsync(payload,{expiresIn: '6h'}),
-    }
+      access_token: await this.jwtService.signAsync(payload, {
+        expiresIn: '24h',
+      }),
+      user: {
+        userID: user.userID,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+      },
+    };
   }
 
   @UseGuards(UserGuard)
@@ -87,19 +134,18 @@ export class UsersController {
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   async changePassword(
     @Param('id') id: string,
-    @Body() data: ChangePasswordDto
+    @Body() data: ChangePasswordDto,
   ) {
     const success = await this.userService.changePassword(
       id,
       data.currentPassword,
-      data.newPassword
+      data.newPassword,
     );
-    
+
     if (!success) {
-      throw new HttpException('Current password is incorrect', 400);
+      throw new NotFoundException('Current password is incorrect');
     }
-    
+
     return { message: 'Password changed successfully' };
   }
-
 }

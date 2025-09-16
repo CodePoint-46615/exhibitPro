@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards, UsePipes, ValidationPipe, Put, Post } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateUserDto } from 'src/users/createUsers.dto';
 import { Users } from 'src/users/users.entity';
@@ -55,11 +55,19 @@ export class AdminController {
     }
 
     @UseGuards(AdminGuard)
+    @Put('exhibitions/:id')
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    replaceExhibition(@Param('id') id: string, @Body() data: any, @Query('admin_id') adminId?: string) {
+        return this.adminService.updateExhibition(id, data, adminId);
+    }
+
+    @UseGuards(AdminGuard)
     @Delete('exhibitions/:id')
     deleteExhibition(@Param('id') id: string, @Query('admin_id') adminId?: string) {
         return this.adminService.deleteExhibition(id, adminId);
     }
 
+    // Bookings
     @UseGuards(AdminGuard)
     @Get('bookings')
     listBookings() {
@@ -72,6 +80,7 @@ export class AdminController {
         return this.adminService.getBooking(id);
     }
 
+    // Feedbacks
     @UseGuards(AdminGuard)
     @Get('feedbacks')
     listFeedbacks() {
@@ -82,5 +91,12 @@ export class AdminController {
     @Get('actions')
     listAdminActions() {
         return this.adminService.listAdminActions();
+    }
+
+    @UseGuards(AdminGuard)
+    @Post('actions')
+    @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+    createAdminAction(@Body('admin_id') adminId: string, @Body('description') description: string) {
+        return this.adminService.createAdminAction(adminId, description);
     }
 }

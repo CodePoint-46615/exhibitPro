@@ -17,27 +17,27 @@ export enum PaymentStatus {
 @Entity('bookings')
 export class Booking {
   @PrimaryGeneratedColumn('uuid')
-  bookingID: string;
+  booking_id: string;
 
-  @ManyToOne(() => Exhibition, (exhibition) => exhibition.bookings)
+  @ManyToOne(() => Exhibition, (exhibition) => exhibition.bookings, { onDelete: 'CASCADE' })
   exhibition: Exhibition;
 
   @ManyToOne(() => Users, (user) => user.bookings)
   customer: Users;
 
   @Column()
-  ticketsBooked: number;
+  tickets_booked: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  totalPrice: number;
+  total_price: number;
 
   @Column({
     type: 'enum',
     enum: PaymentStatus,
     default: PaymentStatus.UNPAID,
   })
-  paymentStatus: PaymentStatus;
+  payment_status: PaymentStatus;
 
   @CreateDateColumn()
-  bookingDate: Date;
+  booking_date: Date;
 }

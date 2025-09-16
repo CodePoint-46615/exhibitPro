@@ -11,12 +11,12 @@ import {
 @Entity('feedbacks')
 export class Feedback {
   @PrimaryGeneratedColumn('uuid')
-  feedbackID: string;
+  feedback_id: string;
 
   @ManyToOne(() => Users, (user) => user.feedbacks)
   customer: Users;
 
-  @ManyToOne(() => Exhibition, (exhibition) => exhibition.feedbacks)
+  @ManyToOne(() => Exhibition, (exhibition) => exhibition.feedbacks, { onDelete: 'CASCADE' })
   exhibition: Exhibition;
 
   @Column({ type: 'int' })
@@ -26,5 +26,5 @@ export class Feedback {
   comment: string;
 
   @CreateDateColumn()
-  submittedAt: Date;
+  submitted_at: Date;
 }

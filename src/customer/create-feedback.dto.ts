@@ -3,11 +3,11 @@ import { IsInt, IsNotEmpty, IsString, IsUUID, Max, Min } from 'class-validator';
 export class CreateFeedbackDto {
   @IsUUID()
   @IsNotEmpty()
-  exhibitionID: string;
+  exhibition_id: string;
 
   @IsUUID()
   @IsNotEmpty()
-  customerID: string;
+  customer_id: string;
 
   @IsInt()
   @Min(1)

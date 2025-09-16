@@ -3,15 +3,15 @@ import { IsInt, IsNotEmpty, IsPositive, IsUUID } from 'class-validator';
 export class CreateBookingDto {
   @IsUUID()
   @IsNotEmpty()
-  exhibitionID: string;
+  exhibition_id: string;
 
   @IsUUID()
   @IsNotEmpty()
-  customerID: string;
+  customer_id: string;
 
   @IsInt()
   @IsPositive()
-  ticketsBooked: number;
+  tickets_booked: number;
 }
 
 

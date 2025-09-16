@@ -10,23 +10,23 @@ import {
 @Entity('admin_actions')
 export class AdminAction {
   @PrimaryGeneratedColumn('uuid')
-  actionID: string;
+  action_id: string;
 
   @ManyToOne(() => Users, (user) => user.adminActions)
   admin: Users;
 
   @Column()
-  actionType: string; // e.g., "approve_host", "delete_booking", "ban_user"
+  action_type: string; // e.g., "approve_host", "delete_booking", "ban_user"
 
   @Column({ nullable: true })
-  targetType?: string; // e.g., "user", "exhibition", "booking", "feedback"
+  target_type?: string; // e.g., "user", "exhibition", "booking", "feedback"
 
   @Column({ nullable: true })
-  targetID: string; // affected user/exhibition/booking/etc.
+  target_id: string; // affected user/exhibition/booking/etc.
 
   @Column('text')
   description: string; // More detail about the action
 
   @CreateDateColumn()
-  actionTime: Date;
+  action_time: Date;
 }

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Observable } from "rxjs";
 import { jwtConstants } from "./user.constant";
@@ -12,7 +12,7 @@ export class UserGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new HttpException('Authorization token not found', 401);
+      throw new UnauthorizedException();
     }
     try {
       const payload = await this.jwtService.verifyAsync(
@@ -24,7 +24,7 @@ export class UserGuard implements CanActivate {
       request['user'] = payload;
     } catch (err) {
       console.error('JWT verification failed:', err);
-      throw new HttpException('Invalid token', 401);
+      throw new UnauthorizedException();
     }
     return true;
   }

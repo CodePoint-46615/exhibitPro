@@ -1,4 +1,4 @@
-import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exhibition } from './exhibition.entity';
@@ -21,7 +21,7 @@ export class HostService {
   async createExhibition(dto: CreateExhibitionDto): Promise<Exhibition> {
     const exhibition = this.exhibitionRepository.create({
       ...dto,
-      host: { userID: dto.hostID } as any,
+      host: { userID: dto.host_id } as any,
     });
     return await this.exhibitionRepository.save(exhibition);
   }
@@ -31,32 +31,38 @@ export class HostService {
   }
 
   async getExhibition(id: string): Promise<Exhibition> {
-    const exhibition = await this.exhibitionRepository.findOne({ where: { exhibitionID: id }, relations: ['host'] });
-    if (!exhibition) throw new HttpException('Exhibition not found', 404);
+    const exhibition = await this.exhibitionRepository.findOne({ where: { exhibition_id: id }, relations: ['host'] });
+    if (!exhibition) throw new NotFoundException('Exhibition not found');
     return exhibition;
   }
 
   async updateExhibition(id: string, dto: Partial<CreateExhibitionDto>): Promise<Exhibition> {
     const exhibition = await this.getExhibition(id);
     Object.assign(exhibition, dto);
-    if (dto.hostID) {
-      (exhibition as any).host = { userID: dto.hostID };
-    }
-    return await this.exhibitionRepository.save(exhibition);
-  }
-
-  async updateWholeExhibition(id: string, dto: CreateExhibitionDto): Promise<Exhibition> {
-    const exhibition = await this.getExhibition(id);
-    Object.assign(exhibition, dto);
-    if (dto.hostID) {
-      (exhibition as any).host = { userID: dto.hostID };
+    if (dto.host_id) {
+      (exhibition as any).host = { userID: dto.host_id };
     }
     return await this.exhibitionRepository.save(exhibition);
   }
 
   async removeExhibition(id: string): Promise<{ message: string }> {
+    // Remove dependent rows (feedbacks, bookings) before deleting exhibition to satisfy FK constraints
+    await this.feedbackRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Feedback)
+      .where('exhibition_id = :id', { id })
+      .execute();
+
+    await this.bookingRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Booking)
+      .where('exhibition_id = :id', { id })
+      .execute();
+
     const result = await this.exhibitionRepository.delete(id);
-    if (result.affected === 0) throw new HttpException('Exhibition not found', 404);
+    if (result.affected === 0) throw new NotFoundException('Exhibition not found');
     return { message: 'Exhibition deleted successfully' };
   }
 
@@ -66,22 +72,23 @@ export class HostService {
     return await this.exhibitionRepository.save(exhibition);
   }
 
+  // Host-centric helpers
   async listMyExhibitions(hostId: string): Promise<Exhibition[]> {
     return await this.exhibitionRepository.find({ where: { host: { userID: hostId } }, relations: ['host'] });
   }
 
   async listExhibitionBookings(exhibitionId: string) {
-    return await this.bookingRepository.find({ where: { exhibition: { exhibitionID: exhibitionId } }, relations: ['customer', 'exhibition'] });
+    return await this.bookingRepository.find({ where: { exhibition: { exhibition_id: exhibitionId } }, relations: ['customer', 'exhibition'] });
   }
 
   async listExhibitionFeedback(exhibitionId: string) {
-    return await this.feedbackRepository.find({ where: { exhibition: { exhibitionID: exhibitionId } }, relations: ['customer', 'exhibition'] });
+    return await this.feedbackRepository.find({ where: { exhibition: { exhibition_id: exhibitionId } }, relations: ['customer', 'exhibition'] });
   }
 
   async getExhibitionStats(exhibitionId: string) {
     const bookings = await this.listExhibitionBookings(exhibitionId);
-    const totalTickets = bookings.reduce((sum, b) => sum + b.ticketsBooked, 0);
-    const totalRevenue = bookings.reduce((sum, b) => sum + Number(b.totalPrice), 0);
+    const totalTickets = bookings.reduce((sum, b) => sum + b.tickets_booked, 0);
+    const totalRevenue = bookings.reduce((sum, b) => sum + Number(b.total_price), 0);
     const feedback = await this.listExhibitionFeedback(exhibitionId);
     const avgRating = feedback.length ? feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length : 0;
     return { totalTickets, totalRevenue, feedbackCount: feedback.length, avgRating };

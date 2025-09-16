@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -7,4 +6,3 @@ export class AppService {
     return 'Hello World!';
   }
 }
-

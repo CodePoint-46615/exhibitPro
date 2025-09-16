@@ -25,7 +25,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     host: 'localhost',
     port: 5432,
     username: 'postgres',
-    password: '1234',
+    password: 'root',
     database: 'exhibitPro',
     autoLoadEntities: true,
     synchronize: true,
@@ -35,4 +35,3 @@ import { TypeOrmModule } from '@nestjs/typeorm';
   providers: [AppService],
 })
 export class AppModule {}
-

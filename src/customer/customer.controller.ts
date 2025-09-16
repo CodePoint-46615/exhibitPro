@@ -1,11 +1,10 @@
-import { Body, Controller, Get, Param, Patch, Post, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe, Req, Patch, Put, Delete } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { Booking } from './booking.entity';
 import { Feedback } from './feedback.entity';
 import { CreateBookingDto } from './create-booking.dto';
 import { CreateFeedbackDto } from './create-feedback.dto';
 import { CustomerGuard } from './customer.guard';
-import { UpdateFeedbackDto } from './update-feedback.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -25,6 +24,33 @@ export class CustomerController {
   }
 
   @UseGuards(CustomerGuard)
+  @Patch('bookings/:id')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  updateBooking(@Param('id') id: string, @Body() body: Partial<CreateBookingDto>): Promise<Booking> {
+    return this.customerService.updateBooking(id, body);
+  }
+
+  @UseGuards(CustomerGuard)
+  @Put('bookings/:id')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  replaceBooking(@Param('id') id: string, @Body() body: Partial<CreateBookingDto>): Promise<Booking> {
+    return this.customerService.updateBooking(id, body);
+  }
+
+  @UseGuards(CustomerGuard)
+  @Delete('bookings/:id')
+  deleteBooking(@Param('id') id: string) {
+    return this.customerService.deleteBooking(id);
+  }
+
+  @UseGuards(CustomerGuard)
+  @Get('bookings')
+  listMyBookings(@Req() req: any): Promise<Booking[]> {
+    const customerId = req.user?.userID || req.user?.sub;
+    return this.customerService.listBookingsForCustomer(customerId);
+  }
+
+  @UseGuards(CustomerGuard)
   @Post('feedbacks')
   @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   createFeedback(@Body() body: CreateFeedbackDto): Promise<Feedback> {
@@ -32,47 +58,26 @@ export class CustomerController {
   }
 
   @UseGuards(CustomerGuard)
+  @Get('feedbacks')
+  listMyFeedbacks(@Req() req: any): Promise<Feedback[]> {
+    const customerId = req.user?.userID || req.user?.sub;
+    return this.customerService.listFeedbacksForCustomer(customerId);
+  }
+
+  @UseGuards(CustomerGuard)
+  @Put('feedbacks/:id')
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  updateFeedback(@Param('id') id: string, @Body() body: Partial<CreateFeedbackDto>): Promise<Feedback> {
+    return this.customerService.updateFeedback(id, body);
+  }
+
   @Get('exhibitions')
   listExhibitions() {
     return this.customerService.listExhibitions();
   }
 
-  @UseGuards(CustomerGuard)
   @Get('exhibitions/:id')
   getExhibition(@Param('id') id: string) {
     return this.customerService.getExhibitionPublic(id);
-  }
-
-  @UseGuards(CustomerGuard)
-  @Get('bookings')
-  listMyBookings(@Req() req: any) {
-    const customerId = req.user?.sub;
-    return this.customerService.listBookingsByCustomer(customerId);
-  }
-
-  @UseGuards(CustomerGuard)
-  @Get('feedbacks')
-  listMyFeedbacks(@Req() req: any) {
-    const customerId = req.user?.sub;
-    return this.customerService.listFeedbacksByCustomer(customerId);
-  }
-
-  @UseGuards(CustomerGuard)
-  @Patch('feedbacks/:id')
-  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
-  updateFeedback(@Param('id') id: string, @Body() body: UpdateFeedbackDto) {
-    return this.customerService.updateFeedback(id, body);
-  }
-
-  @UseGuards(CustomerGuard)
-  @Patch('bookings/:id/cancel')
-  cancelBooking(@Param('id') id: string) {
-    return this.customerService.cancelBooking(id);
-  }
-
-  @UseGuards(CustomerGuard)
-  @Patch('bookings/:id/pay')
-  markBookingPaid(@Param('id') id: string) {
-    return this.customerService.markBookingPaid(id);
   }
 }

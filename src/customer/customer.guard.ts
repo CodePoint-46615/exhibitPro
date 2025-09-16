@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Observable } from "rxjs";
 import { jwtConstants } from "src/users/user.constant";
@@ -12,7 +12,7 @@ export class CustomerGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new HttpException('No token provided', 401);
+      throw new UnauthorizedException();
     }
     try {
       const payload = await this.jwtService.verifyAsync(
@@ -24,10 +24,10 @@ export class CustomerGuard implements CanActivate {
       request['user'] = payload;
       // Only allow access if user is host
       if (!payload.role || payload.role !== 'customer') {
-        throw new HttpException('Unauthorized', 403);
+        throw new UnauthorizedException('Hosts only');
       }
     } catch {
-      throw new HttpException('Invalid token', 401);
+      throw new UnauthorizedException();
     }
     return true;
   }
