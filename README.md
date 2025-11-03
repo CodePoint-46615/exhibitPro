@@ -49,7 +49,7 @@ The **frontend** (developed using **Next.js**) provides a fast, modern, and inte
 
 ---
 
-## 👤 Customer Module Overview (Your Contribution)
+## 👤 Customer Module Overview (My Contribution)
 
 The role 'customer' was assigned to me to develop. The **Customer Module** is responsible for all customer-side functionalities and related APIs.  
 This includes:
