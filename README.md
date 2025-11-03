@@ -49,5 +49,54 @@ The **frontend** (developed using **Next.js**) provides a fast, modern, and inte
 
 ---
 
-## 🧠 System Architecture
+## 👤 Customer Module Overview (Your Contribution)
+
+The role 'customer' was assigned to me to develop. The **Customer Module** is responsible for all customer-side functionalities and related APIs.  
+This includes:
+
+- **Customer Authentication** – registration, login, JWT authorization  
+- **Profile Management** – view and update customer details  
+- **Exhibition Browsing** – fetch active exhibitions, stalls, and exhibitors  
+- **Booking System** – register for exhibitions or events  
+- **Feedback System** – submit reviews and ratings  
+- **Real-time Notifications** – updates via Pusher (event announcements, reminders)  
+
+---
+
+## 🔗 Customer API Endpoints
+
+| Method | Endpoint | Description |
+|--------|-----------|-------------|
+| `POST` | `/customer/register` | Register a new customer account |
+| `POST` | `/customer/login` | Authenticate customer and issue JWT |
+| `GET` | `/customer/profile` | Fetch logged-in customer profile |
+| `PATCH` | `/customer/profile` | Update customer profile information |
+| `GET` | `/customer/exhibitions` | Retrieve all available exhibitions |
+| `GET` | `/customer/exhibitions/:id` | Get exhibition details by ID |
+| `POST` | `/customer/exhibitions/:id/register` | Register customer for a specific exhibition |
+| `GET` | `/customer/notifications` | Fetch event-related notifications |
+| `POST` | `/customer/feedback` | Submit feedback or review for an exhibition |
+
+All endpoints are secured via **JWT Authentication**, ensuring that only verified customers can access personalized data.
+
+---
+
+## 🧾 Project Highlights
+
+- Modularized backend structure following **NestJS best practices**
+- Integrated **TypeORM** with **PostgreSQL** for scalable relational data models
+- Secure authentication using **JWT** and **bcrypt**
+- Real-time updates powered by **Pusher**
+- API-driven architecture, ready for multi-platform frontends
+- Strictly validated DTOs using **class-validator** and **class-transformer**
+
+---
+
+## 📊 Example Entity Relationship (Simplified)
+Customer ───< Booking >─── Exhibition ───< Exhibitor
+│
+└──< Feedback >─── Exhibition
+
+**© 2025 ExhibitPro Team – All rights reserved.**
+
 
