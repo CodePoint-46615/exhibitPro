@@ -5,6 +5,7 @@ import { Exhibition } from './exhibition.entity';
 import { CreateExhibitionDto } from './createExhibition.dto';
 import { Booking } from 'src/customer/booking.entity';
 import { Feedback } from 'src/customer/feedback.entity';
+import { pusher } from "../pusher";
 
 
 @Injectable()
@@ -16,15 +17,39 @@ export class HostService {
     private readonly bookingRepository: Repository<Booking>,
     @InjectRepository(Feedback)
     private readonly feedbackRepository: Repository<Feedback>,
-  ) {}
+  ) { }
+
+  // async createExhibition(dto: CreateExhibitionDto): Promise<Exhibition> {
+  //   const exhibition = this.exhibitionRepository.create({
+  //     ...dto,
+  //     host: { userID: dto.hostID } as any,
+  //   });
+  //   return await this.exhibitionRepository.save(exhibition);
+  // }
 
   async createExhibition(dto: CreateExhibitionDto): Promise<Exhibition> {
+    // 1. Create new exhibition entity
     const exhibition = this.exhibitionRepository.create({
       ...dto,
       host: { userID: dto.hostID } as any,
     });
-    return await this.exhibitionRepository.save(exhibition);
+
+    // 2. Save it to DB
+    const created = await this.exhibitionRepository.save(exhibition);
+
+    // 3. Trigger Pusher event
+    await pusher.trigger("exhibitions", "created", {
+      exhibitionID: created.exhibitionID,
+      title: created.title,
+      imageUrl: created.imageUrl ?? null,
+      description: created.description ?? null,
+      ticketPrice: created.ticketPrice ?? null,
+    });
+
+    // 4. Return saved entity
+    return created;
   }
+
 
   async listExhibitions(): Promise<Exhibition[]> {
     return await this.exhibitionRepository.find({ relations: ['host'] });

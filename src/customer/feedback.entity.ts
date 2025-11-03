@@ -16,8 +16,14 @@ export class Feedback {
   @ManyToOne(() => Users, (user) => user.feedbacks)
   customer: Users;
 
+  // @ManyToOne(() => Users, (user) => user.feedbacks, {
+  //   onDelete: "CASCADE",  
+  // })
+  // customer: Users;
+
   @ManyToOne(() => Exhibition, (exhibition) => exhibition.feedbacks)
   exhibition: Exhibition;
+
 
   @Column({ type: 'int' })
   rating: number; // 1 to 5

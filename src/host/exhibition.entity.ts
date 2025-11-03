@@ -1,7 +1,7 @@
 import { Booking } from 'src/customer/booking.entity';
 import { Feedback } from 'src/customer/feedback.entity';
 import { Users } from 'src/users/users.entity';
-import {Entity,PrimaryGeneratedColumn,Column,ManyToOne,OneToMany,CreateDateColumn,} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, } from 'typeorm';
 
 export enum ExhibitionStatus {
   PENDING = 'pending',
@@ -53,6 +53,9 @@ export class Exhibition {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ nullable: true }) // 👈 add this
+  imageUrl?: string;
 
   // ---------------- Relations ----------------
 
